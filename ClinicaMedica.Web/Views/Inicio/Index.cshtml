@@ -1,0 +1,50 @@
+﻿@{
+    ViewBag.Title = "Início";
+}
+
+<style type="text/css">
+    .container a {
+        color: #777;
+    }
+
+    .container i {
+        color: #212529;
+    }
+
+    .col-lg-12 {
+        padding: 10px;
+        background-color: #cecece;
+    }
+</style>
+
+<div class="container container-space">
+    <h4><i class="fa fa-home" style="color: #1fa67a; padding-bottom: 30px" title=""></i> Início</h4>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <i class="fa fa-check" style="color: #1fa67a" title="Cadastrar Agenda"></i> <a href="@Url.Action("Index","CadastrarAgenda")">Cadastrar Agenda</a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <i class="fa fa-users" style="color: #1fa67a" title="Pacientes"></i> <a href="@Url.Action("Index","Pacientes")">Pacientes</a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <i class="fa fa-clock-o" style="color: #ec971f" title="Agendar Consulta"></i> <a href="@Url.Action("Index","AgendarConsulta")">Agendar Consulta</a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <i class="fa fa-calendar" style="color: #1fa67a" title="Minha Agenda"></i> <a href="@Url.Action("Index","MinhaAgenda")">Minha Agenda</a>
+            </div>
+        </div>
+    </div>
+</div>

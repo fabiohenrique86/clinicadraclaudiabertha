@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic,900,900italic' rel='stylesheet' type='text/css'>
+    <style type="text/css">
+        i {
+            cursor: pointer;
+        }
+
+        .dataTables_wrapper {
+            font-size: 13px;
+        }
+
+        .break-line {
+            white-space: normal !important;
+        }
+
+        .container-space {
+            padding-top: 85px;
+        }
+    </style>
+</head>
+<body id="page-top">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav" style="background-color: #1fa67a">
+        <div class="container">
+            <a class="navbar-brand js-scroll-trigger" href="/home#page-top">Clínica Dra. Cláudia Bertha</a>
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link js-scroll-trigger" href="/home#sobre"><i class="fa fa-info-circle" style="color: #212529" title="Sobre"></i> Sobre</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link js-scroll-trigger" href="/home#servicos"><i class="fa fa-arrow-right" style="color: #6c757d" title="Serviços"></i> Serviços</a>
+                    </li>
+                    @{
+                        if (Request.Cookies.Get("ClinicaDraClaudiaBertha_Usuario") != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link js-scroll-trigger" href="@Url.Action("Index","Inicio")"><i class="fa fa-home" style="color: #fff" title="Início"></i> Início</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link js-scroll-trigger" href="@Url.Action("Sair","Usuario")"><i class="fa fa-sign-out" style="color: #c9302c" title="Logout"></i> Logout</a>
+                            </li>
+                        }
+                    }
+                    <li class="nav-item">
+                        <a class="nav-link js-scroll-trigger" href="/home#contato"><i class="fa fa-envelope" style="color: #286090" title="Contato"></i> Contato</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link js-scroll-trigger" href="@Url.Action("Index", "AgendarConsulta")"><i class="fa fa-clock-o" style="color: #ec971f" title="Agendar Consulta"></i> Agendar Consulta</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    @RenderBody()
+    @Scripts.Render("~/bundles/js")
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $(".datepicker").datepicker({
+                dateFormat: 'dd/mm/yy',
+                dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+                dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
+                dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+                monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+                monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                nextText: 'Próximo',
+                prevText: 'Anterior',
+                changeMonth: true,
+                changeYear: true
+            });
+
+            $(".data").mask("00/00/0000");
+            $(".hora").mask("00:00");
+            $(".cpf").mask("000.000.000-00");
+            $(".celular").mask("(99) 9999-99999").focusout(function (event) {
+                var target, phone, element;
+                target = (event.currentTarget) ? event.currentTarget : event.srcElement;
+                phone = target.value.replace(/\D/g, '');
+                element = $(target);
+                element.unmask();
+                if (phone.length > 10) {
+                    element.mask("(99) 99999-9999");
+                }
+                else {
+                    element.mask("(99) 9999-99999");
+                }
+            });
+
+        });
+
+        $.ajaxSetup({
+            beforeSend: function () { $.blockUI({ message: '<h4>Aguarde...</h4>' }); },
+            complete: function () { $.unblockUI(); }
+        });
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

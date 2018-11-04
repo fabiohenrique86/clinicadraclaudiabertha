@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "Agendar Consulta";
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            function limparConsulta() {
+                $("#hdnIdPaciente").val("");
+                $("#ddlDataInicial").val("");
+            }
+
+            $("#btnAgendarConsulta").click(function () {
+
+                var eventoDto = {};
+
+                var cpf = $("#txtPacienteCpf").val();
+                var cpf2 = $("#txtPacienteCpf2").val();
+
+                if ((cpf == null || cpf == "") && (cpf2 == null || cpf2 == "")) {
+                    alert("Preencha os campos para agendar consulta");
+                    return;
+                }
+
+                if (cpf != null && cpf != "" && cpf2 != null && cpf2 != "") {
+                    alert("Preencha somente um dos campos (CPF)");
+                    return;
+                }
+
+                var isPaciente = false;
+                if (cpf2 != null && cpf2 != "") {
+                    isPaciente = true;
+                }
+
+                eventoDto.Id = $("#ddlDataInicial").val();
+                eventoDto.PacienteDto = { Nome: $("#txtPacienteNome").val(), Email: $("#txtPacienteEmail").val(), Telefone: $("#txtPacienteTelefone").val(), Cpf: cpf != "" ? cpf : cpf2, Cns: $("#txtPacienteCns").val(), IsPaciente: isPaciente };
+                eventoDto.StatusDto = { Id: '@ClinicaMedica.Dto.StatusDto.EStatus.Programada.GetHashCode()' };
+                
+                $.ajax({
+                    dataType: "json",
+                    type: "POST",
+                    url: "/AgendarConsulta/Inserir",
+                    data: eventoDto,
+                    success: function (data) {
+
+                        console.info(data);
+
+                        if (!data.Sucesso) {
+                            console.info(data.Erro);
+                            alert(data.Mensagem);
+                            return;
+                        }
+
+                        alert(data.Mensagem);
+                        limparPaciente();
+                        limparConsulta();
+
+                        $("#ddlDataInicial").empty();
+                        $("#ddlDataInicial").append("<option value=''>Data da Consulta</option>");
+                        $(data.EventosDto).each(function (index, element) {
+                            $("#ddlDataInicial").append("<option value='" + element.Id + "'>" + element.DataInicial + "</option>");
+                        });                        
+                    }
+                });
+
+            });
+
+            function limparPaciente() {
+                $("#txtPacienteNome").val("");
+                $("#txtPacienteEmail").val("");
+                $("#txtPacienteTelefone").val("");
+                $("#txtPacienteCpf").val("");
+                $("#txtPacienteCns").val("");
+                $("#txtPacienteCpf2").val("");
+            }
+
+        });
+    </script>
+
+}
+
+<div class="container container-space">
+    <h4><i class="fa fa-clock-o" style="color: #ec971f; padding-bottom: 30px" title=""></i> Agendar Consulta</h4>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <h4>Não é paciente?</h4>
+                </div>
+                <div class="form-group">
+                    <input id="txtPacienteNome" type="text" class="form-control" placeholder="Nome">
+                </div>
+                <div class="form-group">
+                    <input id="txtPacienteEmail" type="text" class="form-control" placeholder="E-mail">
+                </div>
+                <div class="form-group">
+                    <input id="txtPacienteTelefone" type="text" class="form-control celular" placeholder="Telefone">
+                </div>
+                <div class="form-group">
+                    <input id="txtPacienteCpf" type="text" class="form-control cpf" placeholder="Cpf">
+                </div>
+                <div class="form-group">
+                    <input id="txtPacienteCns" type="text" class="form-control" placeholder="Nº da Carteira do Plano de Saúde (Caso tenha)">
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <h4>Já sou paciente</h4>
+                </div>
+                <div class="form-group">
+                    <input id="txtPacienteCpf2" type="text" class="form-control cpf" placeholder="Cpf">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <span class="mb-0" style="color: #c9302c; font-style: italic">PS: A consulta só estará confirmada após o recebimento do e-mail de confirmação.</span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-4">
+            </div>
+            <div class="col-lg-4">
+                @Html.DropDownList("ddlDataInicial", new SelectList((IEnumerable<dynamic>)ViewData["EventosDto"], "Id", "DataInicial"), "Data da Consulta", new { @class = "form-control" })
+            </div>
+            <div class="col-lg-4">
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <button id="btnAgendarConsulta" class="btn btn-success">Agendar</button>
+            </div>
+        </div>
+    </div>
+</div>

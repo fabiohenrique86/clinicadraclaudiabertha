@@ -1,0 +1,84 @@
+﻿@{
+    ViewBag.Title = "Cadastrar Agenda";
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            function limpar() {
+                $("#txtDataInicial").val("");
+                $("#txtHoraInicial").val("");
+                $("#txtDataFinal").val("");
+                $("#txtHoraFinal").val("");
+            }
+
+            $("#btnCadastrarConsulta").click(function () {
+
+                var eventoDto = {};
+
+                eventoDto.DataInicial = $("#txtDataInicial").val() + " " + $("#txtHoraInicial").val();
+                eventoDto.DataFinal = $("#txtDataFinal").val() + " " + $("#txtHoraFinal").val();
+
+                $.ajax({
+                    dataType: "json",
+                    type: "POST",
+                    url: "/CadastrarAgenda/Inserir",
+                    data: eventoDto,
+                    success: function (data) {
+
+                        if (!data.Sucesso) {
+                            console.info(data.Erro);
+                            alert(data.Mensagem);
+                            return;
+                        }
+
+                        alert(data.Mensagem);
+                        limpar();
+                    }
+                });
+
+            });
+
+        });
+    </script>
+
+}
+
+<div class="container container-space">
+    <h4><i class="fa fa-check" style="color: #1fa67a; padding-bottom: 30px" title=""></i> Cadastrar Agenda</h4>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-lg-12">
+                <p>A agenda será cadastrada considerando todo o intervalo tendo como base o tempo de consulta de 15 minutos.</p>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <input id="txtDataInicial" type="text" class="form-control data datepicker" placeholder="Data Inicial">
+                </div>
+                <div class="form-group">
+                    <input id="txtHoraInicial" type="text" class="form-control hora" placeholder="Hora Inicial">
+                </div>
+                <div class="form-group">
+                    <input id="txtDataFinal" type="text" class="form-control data datepicker" placeholder="Data Final">
+                </div>
+                <div class="form-group">
+                    <input id="txtHoraFinal" type="text" class="form-control hora" placeholder="Hora Final">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <button id="btnCadastrarConsulta" class="btn btn-success">Cadastrar Agenda</button>
+            </div>
+        </div>
+    </div>
+</div>

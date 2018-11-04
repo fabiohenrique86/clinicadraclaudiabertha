@@ -1,0 +1,71 @@
+﻿<div class="modal fade" id="modalconsultastatus" tabindex="-1" role="dialog" aria-labelledby="ModalConsultaStatus" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel"><label id="lblNomePacienteStatus"></label></h4>
+                <input id="hdnIdEventoStatus" type="hidden" />
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Fechar</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <input id="txtNomePacienteStatus" type="text" class="form-control" placeholder="Nome do Paciente (Mínimo de 3 letras)" />
+                            <input type="hidden" name="hdnIdPacienteStatus" id="hdnIdPacienteStatus" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            @Html.DropDownList("ddlStatus", new SelectList((IEnumerable<ClinicaMedica.Dto.StatusDto>)ViewBag.StatusDto, "Id", "Descricao"), "Status da Consulta", new { @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div id="divMotivo" class="form-group" style="display: none">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            @Html.DropDownList("ddlMotivo", new SelectList((IEnumerable<ClinicaMedica.Dto.MotivoDto>)ViewBag.MotivoDto, "Id", "Descricao"), "Motivo do cancelamento", new { @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <textarea id="txtObservacao" class="form-control" rows="4" placeholder="Histórico"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-lg-11">
+                            <input id="txtPacienteDescricaoMedicacao" type="text" class="form-control" placeholder="Nome do Medicamento">
+                        </div>
+                        <div class="col-lg-1 text-center">
+                            <i id="iAdicionarMedicacao" class="fa fa-plus" style="color: #5cb85c; padding-top: 10px"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <table id="tbMedicacao" class="table nowrap" style="width: 100%">
+                                <thead>
+                                    <tr>
+                                        <td class="text-center" style="width: 5%"><b>Id</b></td>
+                                        <td class="text-center" style="width: 90%"><b>Medicamento</b></td>
+                                        <td class="text-center" style="width: 5%"><b>Ação</b></td>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnSalvarStatus" type="button" class="btn btn-success">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>

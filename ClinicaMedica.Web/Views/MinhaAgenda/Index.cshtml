@@ -1,0 +1,257 @@
+﻿@{
+    ViewBag.Title = "Minha Agenda";
+}
+
+<style type="text/css">
+    .ui-autocomplete {
+        z-index: 2147483647;
+    }
+</style>
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        var events = [];
+
+        $(document).ready(function () {
+
+            $.getJSON("/MinhaAgenda/Listar", { dtInicial: '@DateTime.Now.ToString("dd/MM/yyyy HH:mm")', dtFinal: '@DateTime.Now.AddDays(30).ToString("dd/MM/yyyy HH:mm")' },
+            function (data) {
+
+                if (!data.Sucesso) {
+                    console.info(data.Erro);
+                    alert(data.Mensagem);
+                    return;
+                }
+
+                montarEventos(data.EventosDto);
+
+                $("#calendar").fullCalendar({
+                    header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek,agendaDay,listMonth' },
+                    defaultView: 'listMonth', // set the default initial view
+                    locale: 'pt-br', // set the locale to a specific language
+                    buttonIcons: true, // show the prev/next text
+                    weekNumbers: false, // show the week numbers
+                    editable: true, // allow edit events
+                    eventLimit: true, // allow "more" link when too many events
+                    navLinks: false, // can click day/week names to navigate views
+                    events: events,
+                    eventClick: function (event) {
+
+                        //if (event.backgroundColor == "#5cb85c") // confirmada
+                        //{
+
+                        //}
+                        //else if (event.backgroundColor == "#d9534f") { // cancelada
+                        //    return;
+                        //}
+
+                        limparStatus();
+
+                        var e = event.id.split('*');
+
+                        $("#lblNomePacienteStatus").text(event.title + " - " + moment(event.start).format("DD/MM/YYYY HH:mm") + " às " + moment(event.end).format("HH:mm"));
+                        $("#hdnIdEventoStatus").val(e[0]);
+                        $("#hdnIdPacienteStatus").val(e[1]);
+
+                        $("#divMotivo").hide();
+
+                        $('#modalconsultastatus').modal('show');
+                    },
+                    eventRender: function (event, element, view) {
+
+
+                    },
+                });
+            });
+
+            function montarEventos(eventos) {
+                events = [];
+
+                $(eventos).each(function (i, e) {
+
+                    var className = "";
+
+                    if (e.StatusDto.Id == '@ClinicaMedica.Dto.StatusDto.EStatus.Programada.GetHashCode()') {
+                        className = "#f0ad4e";
+                    }
+                    else if (e.StatusDto.Id == '@ClinicaMedica.Dto.StatusDto.EStatus.Confirmada.GetHashCode()') {
+                        className = "#5cb85c";
+                    }
+                    else if (e.StatusDto.Id == '@ClinicaMedica.Dto.StatusDto.EStatus.Cancelada.GetHashCode()') {
+                        className = "#d9534f";
+                    }
+
+                    events.push({
+                        id: e.Id + "*" + e.PacienteDto.Id,
+                        title: e.PacienteDto.Nome,
+                        start: moment(e.DataInicial).format("YYYY-MM-DDTHH:mm:ss"),
+                        end: moment(e.DataFinal).format("YYYY-MM-DDTHH:mm:ss"),
+                        allday: false,
+                        backgroundColor: className
+                    });
+                });
+            }
+
+            $("#txtNomePacienteStatus").autocomplete({
+                minLength: 3,
+                source: function (request, response) {
+                    $.getJSON("/Pacientes/Listar", { Nome: request.term }, function (data, status, xhr) {
+
+                        // se não houver paciente cadastrado, retorna mensagem ao usuário
+                        if (data.PacientesDto == null || data.PacientesDto.length <= 0) {
+                            data.PacientesDto = [];
+                            data.PacientesDto.push({ Id: 0, Nome: "Paciente não cadastrado" });
+                        }
+
+                        response($.map(data.PacientesDto, function (paciente) {
+                            return { label: paciente.Nome, value: paciente.Id }
+                        }));
+                    });
+                },
+                select: function (event, ui) {
+
+                    // apaga a pesquisa do cliente selecionado
+                    if (ui.item.label == "Paciente não cadastrado") {
+                        ui.item.label = "";
+                        ui.item.value = "";
+                        return;
+                    }
+
+                    $("#hdnIdPacienteStatus").val(ui.item.value);
+
+                    ui.item.label = ui.item.label;
+                    ui.item.value = ui.item.label;
+                },
+                change: function (event, ui) {
+                    if (ui == null || ui.item == undefined || ui.item == null) {
+                        $("#hdnIdPacienteStatus").val("");
+                    }
+                }
+            });
+
+            function limparStatus() {
+                $("#lblNomePacienteStatus").text("");
+                $("#txtNomePacienteStatus").val("");
+                $("#hdnIdPacienteStatus").val("");
+                $("#hdnIdEventoStatus").val("");
+                $("#ddlStatus").val("");
+                $("#ddlMotivo").val("");
+                $("#txtObservacao").val("");
+                $("#tbMedicacao").DataTable().clear().draw();
+            }
+
+            $("#btnSalvarStatus").click(function () {
+
+                var eventoDto = {};
+
+                eventoDto.StatusDto = {};
+                eventoDto.PacienteDto = {};
+                eventoDto.MotivoDto = {};
+
+                eventoDto.Id = $("#hdnIdEventoStatus").val();
+                eventoDto.Observacao = $("#txtObservacao").val();
+                eventoDto.StatusDto.Id = $("#ddlStatus").val();
+                eventoDto.PacienteDto.Id = $("#hdnIdPacienteStatus").val();
+                eventoDto.MotivoDto.Id = $("#ddlMotivo").val();
+
+                eventoDto.PacienteDto.MedicacoesDto = [];
+                tbMedicacao.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                    var data = this.data();
+                    eventoDto.PacienteDto.MedicacoesDto.push({ Descricao: data.Descricao, "PacienteDto.Id": eventoDto.PacienteDto.Id });
+                });
+
+                $.ajax({
+                    dataType: "json",
+                    type: "POST",
+                    url: "/AgendarConsulta/Atualizar",
+                    data: eventoDto,
+                    success: function (data) {
+
+                        if (!data.Sucesso) {
+                            console.info(data.Erro);
+                            alert(data.Mensagem);
+                            return;
+                        }
+                        
+                        limparStatus();
+                        $('#modalconsultastatus').modal('hide');
+                        $('#calendar').fullCalendar('removeEventSource', events);
+                        montarEventos(data.EventosDto);
+                        $('#calendar').fullCalendar('addEventSource', events);
+                        $('#calendar').fullCalendar('refetchEvents');
+                    }
+                });
+                
+            });
+
+            // medicação
+
+            var tbMedicacao = $("#tbMedicacao").DataTable({
+                "paging": false,
+                "ordering": false,
+                "info": false,
+                "searching": false,
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "zeroRecords": "Sem registros a serem exibidos",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "Sem registros a serem exibidos",
+                    "infoFiltered": "(filtrados de _MAX_ total de registros)",
+                    "sSearch": "Pesquisar",
+                    "oPaginate": { "sNext": "Próximo", "sPrevious": "Anterior", "sFirst": "Primeiro", "sLast": "Último" }
+                },
+                "columns":
+                [
+                    { "data": "Id", "className": "text-center", "visible": false },
+                    { "data": "Descricao", "className": "text-center" },
+                    {
+                        "data": function (data, type, row) {
+                            var excluir = "<i class='fa fa-remove' title='Excluir Medicação' onclick='excluirMedicacao(this)' style='cursor: pointer'></i>";
+                            return excluir;
+                        },
+                        "className": "text-center"
+                    }
+                ]
+            });
+
+            $("#iAdicionarMedicacao").click(function () {
+                var descricao = $("#txtPacienteDescricaoMedicacao").val().trim();
+                if (descricao == null || descricao == "") {
+                    return;
+                }
+
+                tbMedicacao.rows.add([{ Id: 0, Descricao: descricao, "Acao": "<i class='fa fa-remove' title='Excluir Medicação' onclick='excluirMedicacao(this)' style='cursor: pointer'></i>" }]).draw();
+                $("#txtPacienteDescricaoMedicacao").val("");
+            });
+
+            $("#ddlStatus").change(function () {
+                var statusId = $(this).val();
+                if (statusId == '@ClinicaMedica.Dto.StatusDto.EStatus.Cancelada.GetHashCode()') {
+                    $("#divMotivo").show();
+                }
+                else {
+                    $("#divMotivo").hide();
+                }
+
+                $("#ddlMotivo").val("");
+            });
+
+        });
+
+        function excluirMedicacao(obj) {
+            $("#tbMedicacao").DataTable().row($(obj).parents('tr')).remove().draw();
+        }
+    </script>
+
+}
+
+<div class="container container-space">
+    <h4><i class="fa fa-calendar" style="color: #1fa67a; padding-bottom: 30px" title=""></i> Minha Agenda</h4>
+    <div class="form-group">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+@Html.Partial("_ModalConsultaStatus", new ViewDataDictionary { { "StatusDto", ViewBag.StatusDto }, { "MotivoDto", ViewBag.MotivoDto } })

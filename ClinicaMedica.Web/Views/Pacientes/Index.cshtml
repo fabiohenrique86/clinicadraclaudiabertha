@@ -1,0 +1,294 @@
+﻿@{
+    ViewBag.Title = "Pacientes";
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        function modalAtualizarPaciente(pacienteDto) {
+            $("#hdnIdPacienteAtualizacao").val(pacienteDto.Id);
+            $("#lblPacienteNomeAtualizacao").text(pacienteDto.Nome);
+
+            $('#modalpacienteatualizacao').modal('show');
+        }
+
+        function modalAdicionarMedicacao(pacienteDto) {
+            $("#hdnIdPacienteMedicacao").val(pacienteDto.Id);
+            $("#lblPacienteNomeMedicacao").text(pacienteDto.Nome);
+
+            $.getJSON("/Medicacao/Listar", { "pacienteDto.Id": pacienteDto.Id }, function (data) {
+                if (!data.Sucesso) {
+                    console.info(data.Erro);
+                    alert(data.Mensagem);
+                    return;
+                }
+
+                $("#tbMedicacao").DataTable().clear();
+                $("#tbMedicacao").DataTable().rows.add(data.MedicacoesDto).draw();
+
+                $('#modaladicionarmedicacao').modal('show');
+            });
+        }
+
+        function modalHistorico(pacienteDto) {
+            $("#hdnIdPacienteHistorico").val(pacienteDto.Id);
+            $("#lblPacienteNomeHistorico").text(pacienteDto.Nome);
+
+            $.getJSON("/MinhaAgenda/Listar", { pacienteId: pacienteDto.Id }, function (data) {
+                if (!data.Sucesso) {
+                    console.info(data.Erro);
+                    alert(data.Mensagem);
+                    return;
+                }
+
+                $("#tbHistorico").DataTable().clear();
+                $("#tbHistorico").DataTable().rows.add(data.EventosDto).draw();
+
+                $('#modalpacientehistorico').modal('show');
+            });
+        }
+
+        function excluirMedicacao(data, obj) {
+            var medicacaoDto = {};
+
+            medicacaoDto.Id = data.Id;
+            medicacaoDto.PacienteDto = { Id: $("#hdnIdPacienteMedicacao").val() };
+
+            $.ajax({
+                dataType: "json",
+                type: "POST",
+                url: "/Medicacao/Excluir",
+                data: medicacaoDto,
+                success: function (data) {
+
+                    if (!data.Sucesso) {
+                        console.info(data.Erro);
+                        alert(data.Mensagem);
+                        return;
+                    }
+
+                    $("#tbMedicacao").DataTable().clear();
+                    $("#tbMedicacao").DataTable().rows.add(data.MedicacoesDto).draw();
+                }
+            });
+        }
+
+        $(document).ready(function () {
+
+            var tbPaciente = $("#tbPaciente").DataTable({
+                "paging": true,
+                "ordering": false,
+                "info": false,
+                "searching": true,
+                "pageLength": 10,
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "zeroRecords": "Sem registros a serem exibidos",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "Sem registros a serem exibidos",
+                    "infoFiltered": "(filtrados de _MAX_ total de registros)",
+                    "sSearch": "Pesquisar",
+                    "oPaginate": { "sNext": "Próximo", "sPrevious": "Anterior", "sFirst": "Primeiro", "sLast": "Último" }
+                },
+                "columns":
+                [
+                    { "data": "Id", "className": "text-center", "visible": false },
+                    { "data": "Nome", "className": "text-center" },
+                    { "data": "Email", "className": "text-center" },
+                    { "data": "Cpf", "className": "text-center" },
+                    { "data": "Telefone", "className": "text-center" },
+                    { "data": "Cns", "className": "text-center" },
+                    {
+                        "data": function (data, type, row) {
+
+                            var alteracao = "<i class='fa fa-pencil' title='Atualizar Dados' style='cursor: pointer; color: #31b0d5' onclick='modalAtualizarPaciente(" + JSON.stringify(data) + ")'></i>";
+                            var medicacao = "<i class='fa fa-medkit' title='Medicação' style='cursor: pointer; color: #c9302c' onclick='modalAdicionarMedicacao(" + JSON.stringify(data) + ", this)'></i>";
+                            var historico = "<i class='fa fa-list' title='Histórico' style='cursor: pointer; color: #777' onclick='modalHistorico(" + JSON.stringify(data) + ")'></i>";
+
+                            return alteracao + " " + medicacao + " " + historico;
+
+                        },
+                        "className": "text-center"
+                    }
+                ]
+            });
+
+            $.getJSON("/Pacientes/Listar", function (data) {
+                if (!data.Sucesso) {
+                    console.info(data.Erro);
+                    alert(data.Mensagem);
+                    return;
+                }
+
+                tbPaciente.clear();
+                tbPaciente.rows.add(data.PacientesDto).draw();
+            });
+
+            // Modal - Atualização
+
+            function limparAtualizacao() {
+                $("#hdnIdPacienteAtualizacao").val("");
+                $("#lblPacienteNomeAtualizacao").val("");
+                $("#txtPacienteNomeAtualizacao").val("");
+                $("#txtPacienteEmailAtualizacao").val("");
+                $("#txtPacienteTelefoneAtualizacao").val("");
+                $("#txtPacienteCnsAtualizacao").val("");
+            }
+
+            $("#btnLimparPacienteAtualizacao").click(function () {
+                limparAtualizacao();
+            });
+
+            $("#btnAtualizarPacienteAtualizacao").click(function () {
+
+                var pacienteDto = {};
+
+                pacienteDto.Id = $("#hdnIdPacienteAtualizacao").val();
+                pacienteDto.Nome = $("#txtPacienteNomeAtualizacao").val();
+                pacienteDto.Email = $("#txtPacienteEmailAtualizacao").val();
+                pacienteDto.Telefone = $("#txtPacienteTelefoneAtualizacao").val();
+                pacienteDto.Cns = $("#txtPacienteCnsAtualizacao").val();
+
+                $.ajax({
+                    dataType: "json",
+                    type: "POST",
+                    url: "/Pacientes/Atualizar",
+                    data: pacienteDto,
+                    success: function (data) {
+
+                        if (!data.Sucesso) {
+                            console.info(data.Erro);
+                            alert(data.Mensagem);
+                            return;
+                        }
+                        
+                        limparAtualizacao();
+                        $('#modalpacienteatualizacao').modal('hide');
+
+                        tbPaciente.clear();
+                        tbPaciente.rows.add(data.PacientesDto).draw();
+                    }
+                });
+
+            });
+
+            // Modal - Medicação
+
+            var tbMedicacao = $("#tbMedicacao").DataTable({
+                "paging": false,
+                "ordering": false,
+                "info": false,
+                "searching": false,
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "zeroRecords": "Sem registros a serem exibidos",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "Sem registros a serem exibidos",
+                    "infoFiltered": "(filtrados de _MAX_ total de registros)",
+                    "sSearch": "Pesquisar",
+                    "oPaginate": { "sNext": "Próximo", "sPrevious": "Anterior", "sFirst": "Primeiro", "sLast": "Último" }
+                },
+                "columns":
+                [
+                    { "data": "Id", "className": "text-center", "visible": false },
+                    { "data": "Descricao", "className": "text-center" },
+                    {
+                        "data": function (data, type, row) {
+                            var excluir = "<i class='fa fa-remove' title='Excluir Medicação' onclick='excluirMedicacao(" + JSON.stringify(data) + ", this)' style='cursor: pointer'></i>";
+                            return excluir;
+                        },
+                        "className": "text-center"
+                    }
+                ]
+            });
+
+            function limparMedicacao() {
+                $("#txtPacienteDescricaoMedicacao").val("");
+                tbMedicacao.clear().draw();
+                $('#modaladicionarmedicacao').modal('hide');
+            }
+
+            $("#iAdicionarMedicacao").click(function () {
+
+                var descricao = $("#txtPacienteDescricaoMedicacao").val().trim();
+                if (descricao == null || descricao == "") {
+                    return;
+                }
+
+                var medicacaoDto = { Descricao: descricao, Ativo: true, "PacienteDto.Id": $("#hdnIdPacienteMedicacao").val() };
+
+                $.ajax({
+                    dataType: "json",
+                    type: "POST",
+                    url: "/Medicacao/Inserir",
+                    data: medicacaoDto,
+                    success: function (data) {
+
+                        if (!data.Sucesso) {
+                            console.info(data.Erro);
+                            alert(data.Mensagem);
+                            return;
+                        }
+
+                        $("#txtPacienteDescricaoMedicacao").val("");
+                        tbMedicacao.clear();
+                        tbMedicacao.rows.add(data.MedicacoesDto).draw();
+                    }
+                });
+            });
+
+            // Modal - Histórico
+
+            var tbHistorico = $("#tbHistorico").DataTable({
+                "paging": false,
+                "ordering": false,
+                "info": false,
+                "searching": false,
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "zeroRecords": "Sem registros a serem exibidos",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "Sem registros a serem exibidos",
+                    "infoFiltered": "(filtrados de _MAX_ total de registros)",
+                    "sSearch": "Pesquisar",
+                    "oPaginate": { "sNext": "Próximo", "sPrevious": "Anterior", "sFirst": "Primeiro", "sLast": "Último" }
+                },
+                "columns":
+                [
+                    {
+                        "data": function (data, type, row) {
+                            return moment(data.DataInicial).format("DD/MM/YYYY HH:mm") + " às " + moment(data.DataFinal).format("HH:mm");
+                        },
+                        "className": "text-center"
+                    },
+                    { "data": "Observacao", "className": "text-justify break-line" }
+                ]
+            });
+        });
+
+    </script>
+}
+<div class="container container-space">
+    <h4><i class="fa fa-users" style="color: #1fa67a; padding-bottom: 30px" title=""></i> Pacientes</h4>
+    <div class="form-group">
+        <table id="tbPaciente" class="table nowrap">
+            <thead>
+                <tr>
+                    <td class="text-center" style="width: 5%"><b>Id</b></td>
+                    <td class="text-center" style="width: 20%"><b>Nome</b></td>
+                    <td class="text-center" style="width: 20%"><b>E-mail</b></td>
+                    <td class="text-center" style="width: 20%"><b>Cpf</b></td>
+                    <td class="text-center" style="width: 15%"><b>Telefone</b></td>
+                    <td class="text-center" style="width: 20%"><b>CNS</b></td>
+                    <td class="text-center" style="width: 5%"><b>Ação</b></td>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@Html.Partial("_ModalPacienteAtualizacao")
+@Html.Partial("_ModalAdicionarMedicacao")
+@Html.Partial("_ModalPacienteHistorico")

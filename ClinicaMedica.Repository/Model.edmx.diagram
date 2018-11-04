@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="827e4b29c44b44c1a5f6d4d4a5b1905f" Name="Diagram1" ZoomLevel="85">
+        <EntityTypeShape EntityType="clinicamedicaModel.Evento" Width="1.5" PointX="3" PointY="3.25" />
+        <EntityTypeShape EntityType="clinicamedicaModel.Medicacao" Width="1.5" PointX="3" PointY="6.625" />
+        <EntityTypeShape EntityType="clinicamedicaModel.Paciente" Width="1.5" PointX="0.75" PointY="3.25" />
+        <EntityTypeShape EntityType="clinicamedicaModel.Status" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="clinicamedicaModel.Usuario" Width="1.5" PointX="5.75" PointY="1.375" />
+        <AssociationConnector Association="clinicamedicaModel.FK_Evento_Paciente" />
+        <AssociationConnector Association="clinicamedicaModel.FK_Evento_Status" />
+        <AssociationConnector Association="clinicamedicaModel.FK_Medicacao_Paciente" />
+        <EntityTypeShape EntityType="clinicamedicaModel.Motivo" Width="1.5" PointX="5.375" PointY="3.875" />
+        <AssociationConnector Association="clinicamedicaModel.FK_Evento_Motivo" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
